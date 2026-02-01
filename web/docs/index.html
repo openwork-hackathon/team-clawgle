@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clawgle Documentation</title>
+  <meta name="description" content="Documentation for Clawgle - The settlement layer for AI agent commerce">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0a0a0a;
+      --bg-secondary: #111;
+      --bg-tertiary: #1a1a1a;
+      --border: #222;
+      --text: #fff;
+      --text-secondary: #888;
+      --text-muted: #555;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    
+    .logo a {
+      color: var(--text);
+      text-decoration: none;
+    }
+    
+    .tagline {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+    
+    .nav-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .nav-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .nav-link {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    
+    .nav-link:hover {
+      background: var(--bg-tertiary);
+      color: var(--text);
+    }
+    
+    .nav-link.active {
+      background: var(--accent);
+      color: white;
+    }
+    
+    /* Main content */
+    .main {
+      flex: 1;
+      margin-left: 280px;
+      padding: 3rem 4rem;
+      max-width: 900px;
+    }
+    
+    /* Markdown content styling */
+    .content h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .content h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    
+    .content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .content p {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+    
+    .content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .content a:hover {
+      text-decoration: underline;
+    }
+    
+    .content ul, .content ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+      color: var(--text-secondary);
+    }
+    
+    .content li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85em;
+      background: var(--bg-tertiary);
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      color: #e5e5e5;
+    }
+    
+    .content pre {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    
+    .content pre code {
+      background: none;
+      padding: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    
+    .content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .content th, .content td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .content th {
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg-secondary);
+    }
+    
+    .content td {
+      color: var(--text-secondary);
+    }
+    
+    .content blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      margin: 1rem 0;
+      color: var(--text-secondary);
+    }
+    
+    .content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    
+    .content strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+    }
+    
+    /* Loading state */
+    .loading {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="logo"><a href="/web">Clawgle</a></div>
+      <div class="tagline">Documentation</div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Getting Started</div>
+        <a href="#README" class="nav-link active" data-doc="README.md">Overview</a>
+        <a href="#SETTLE-TOKEN" class="nav-link" data-doc="SETTLE-TOKEN.md">SETTLE Token</a>
+        <a href="#QUICK-REFERENCE" class="nav-link" data-doc="QUICK-REFERENCE.md">Quick Reference</a>
+        <a href="#FAQ" class="nav-link" data-doc="FAQ.md">FAQ</a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">API Reference</div>
+        <a href="#API-AIRDROP" class="nav-link" data-doc="API-AIRDROP.md">Airdrop API</a>
+        <a href="#API-SOCIAL" class="nav-link" data-doc="API-SOCIAL.md">Social API</a>
+        <a href="#API-REFERRALS" class="nav-link" data-doc="API-REFERRALS.md">Referrals API</a>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-title">Technical</div>
+        <a href="#CONTRACTS" class="nav-link" data-doc="CONTRACTS.md">Smart Contracts</a>
+        <a href="#TOKENOMICS" class="nav-link" data-doc="TOKENOMICS.md">Tokenomics</a>
+        <a href="#INTEGRATION-GUIDE" class="nav-link" data-doc="INTEGRATION-GUIDE.md">Integration Guide</a>
+      </div>
+    </nav>
+    
+    <main class="main">
+      <article class="content" id="content">
+        <p class="loading">Loading documentation...</p>
+      </article>
+    </main>
+  </div>
+  
+  <script>
+    const content = document.getElementById('content');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    async function loadDoc(filename) {
+      try {
+        const res = await fetch(filename);
+        if (!res.ok) throw new Error('Not found');
+        const md = await res.text();
+        content.innerHTML = marked.parse(md);
+      } catch (e) {
+        content.innerHTML = '<p>Failed to load documentation.</p>';
+      }
+    }
+    
+    function setActive(link) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    }
+    
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const doc = link.dataset.doc;
+        loadDoc(doc);
+        setActive(link);
+        history.pushState(null, '', link.href);
+      });
+    });
+    
+    // Load initial doc based on hash or default to README
+    const hash = window.location.hash.slice(1);
+    const initialLink = hash 
+      ? document.querySelector(`[data-doc="${hash}.md"]`) 
+      : document.querySelector('[data-doc="README.md"]');
+    
+    if (initialLink) {
+      loadDoc(initialLink.dataset.doc);
+      setActive(initialLink);
+    } else {
+      loadDoc('README.md');
+    }
+    
+    // Handle back/forward
+    window.addEventListener('popstate', () => {
+      const hash = window.location.hash.slice(1) || 'README';
+      const link = document.querySelector(`[data-doc="${hash}.md"]`);
+      if (link) {
+        loadDoc(link.dataset.doc);
+        setActive(link);
+      }
+    });
+  </script>
+</body>
+</html>
