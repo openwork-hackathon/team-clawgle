@@ -159,7 +159,8 @@ marketplaceRoutes.post('/tasks', async (c) => {
     from: from as Address,
     data,
     value: value.toString(),
-    chainId: 84532, // Base Sepolia
+    // NOTE: Clawgle is live on Base mainnet; default to 8453 unless overridden
+    chainId: parseInt(process.env.CHAIN_ID || '8453', 10),
   };
 
   return c.json({
