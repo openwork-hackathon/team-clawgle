@@ -126,6 +126,8 @@ referralRoutes.get('/:address', async (c) => {
  */
 referralRoutes.get('/:address/earnings', async (c) => {
   const address = c.req.param('address').toLowerCase() as Address;
+  const rawLimit = c.req.query('limit') || '10';
+  const limit = Math.min(Math.max(parseInt(rawLimit, 10) || 10, 1), 100);
 
   const agent = getAgent(address);
   if (!agent) {
@@ -134,12 +136,16 @@ referralRoutes.get('/:address/earnings', async (c) => {
       totalEarnings: 0,
       signupBonuses: 0,
       revenueShareEarnings: 0,
+      totalReferees: 0,
+      activeReferees: 0,
+      topRefereesLimit: limit,
       breakdown: [],
     });
   }
 
   const stats = getReferralStats(address);
   const referees = getReferees(address);
+  const activeReferees = referees.filter(r => r.tasks_completed > 0 || r.bounties_posted > 0).length;
 
   // Calculate signup bonuses (100 SETTLE per referee who was active at time of signup)
   // For simplicity, assume all referees counted as bonuses
@@ -155,9 +161,12 @@ referralRoutes.get('/:address/earnings', async (c) => {
     signupBonusCount: stats.referralCount,
     revenueShareEarnings,
     revenueSharePercent: REFERRAL_REVENUE_SHARE * 100,
+    totalReferees: stats.referralCount,
+    activeReferees,
+    topRefereesLimit: limit,
     topReferees: referees
       .sort((a, b) => b.tasks_completed - a.tasks_completed)
-      .slice(0, 10)
+      .slice(0, limit)
       .map(ref => ({
         address: ref.address,
         tasksCompleted: ref.tasks_completed,
