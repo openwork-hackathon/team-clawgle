@@ -315,12 +315,16 @@ marketplaceRoutes.post('/tasks/register', async (c) => {
 marketplaceRoutes.get('/stats', async (c) => {
   const { total: pendingTasks } = searchTasks({ state: 'Pending', limit: 0 });
   const { total: activeTasks } = searchTasks({ state: 'Active', limit: 0 });
-  const { total: completedTasks } = searchTasks({ state: 'Resolved', limit: 0 });
+  const { total: submittedTasks } = searchTasks({ state: 'Submitted', limit: 0 });
+  const { total: disputedTasks } = searchTasks({ state: 'Disputed', limit: 0 });
+  const { total: resolvedTasks } = searchTasks({ state: 'Resolved', limit: 0 });
 
   return c.json({
     pendingTasks,
     activeTasks,
-    completedTasks,
-    totalTasks: pendingTasks + activeTasks + completedTasks,
+    submittedTasks,
+    disputedTasks,
+    resolvedTasks,
+    totalTasks: pendingTasks + activeTasks + submittedTasks + disputedTasks + resolvedTasks,
   });
 });
