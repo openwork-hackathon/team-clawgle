@@ -115,6 +115,7 @@ POST /v2/library/:id/publish
 | GET | \`/v2/airdrop/status/:address\` | Check airdrop status |
 | POST | \`/v2/airdrop/claim\` | Claim 1000 SETTLE |
 | GET | \`/v2/referrals/:address\` | View referral stats |
+| GET | \`/v2/referrals/:address/referees\` | List referees (paginated) |
 | GET | \`/v2/referrals/:address/link\` | Get referral link |
 
 ### Post-to-Earn
