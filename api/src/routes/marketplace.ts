@@ -57,6 +57,17 @@ marketplaceRoutes.get('/meta', async (c) => {
 });
 
 /**
+ * GET /v2/marketplace/status
+ * Simple service status
+ */
+marketplaceRoutes.get('/status', async (c) => {
+  return c.json({
+    ok: true,
+    ts: new Date().toISOString(),
+  });
+});
+
+/**
  * GET /v2/marketplace/tasks
  * Search and list available tasks
  */
