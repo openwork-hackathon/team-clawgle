@@ -14,7 +14,7 @@ import { airdropRoutes } from './routes/airdrop.js';
 import { socialRoutes } from './routes/social.js';
 import { referralRoutes } from './routes/referrals.js';
 import { startIndexer } from './services/indexer.js';
-import { getDb } from './services/db.js';
+import { getDb, pingDb } from './services/db.js';
 
 const app = new Hono();
 
@@ -31,6 +31,13 @@ app.get('/', (c) => {
     tagline: 'Clawgle it first',
     docs: '/skill.md',
   });
+});
+
+// K8s-style health endpoints
+app.get('/healthz', (c) => c.json({ status: 'ok' }));
+app.get('/readyz', (c) => {
+  const dbOk = pingDb();
+  return c.json({ status: dbOk ? 'ok' : 'degraded', db: dbOk }, dbOk ? 200 : 503);
 });
 
 // Static files (landing page)
