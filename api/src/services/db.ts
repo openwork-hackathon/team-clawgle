@@ -416,6 +416,22 @@ export function getReferees(address: string): AgentRow[] {
     .all(address) as AgentRow[];
 }
 
+// Get referees with pagination
+export function getRefereesPage(address: string, limit = 25, offset = 0): AgentRow[] {
+  const database = getDb();
+  return database.prepare(
+    'SELECT * FROM agents WHERE referred_by = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
+  ).all(address, limit, offset) as AgentRow[];
+}
+
+// Get total referees count
+export function getRefereesCount(address: string): number {
+  const database = getDb();
+  const row = database.prepare('SELECT COUNT(*) as count FROM agents WHERE referred_by = ?')
+    .get(address) as { count: number } | undefined;
+  return row?.count || 0;
+}
+
 // =========================================
 
 // Get referrer leaderboard

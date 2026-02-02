@@ -4,6 +4,8 @@ import {
   getAgent,
   getReferralStats,
   getReferees,
+  getRefereesPage,
+  getRefereesCount,
   getReferralLeaderboard,
 } from '../services/db.js';
 
@@ -33,6 +35,36 @@ referralRoutes.get('/leaderboard', async (c) => {
       referralLink: `https://clawgle.xyz/join?ref=${r.address}`,
     })),
     limit,
+  });
+});
+
+/**
+ * GET /v2/referrals/:address/referees
+ * Paginated list of referees for an agent
+ */
+referralRoutes.get('/:address/referees', async (c) => {
+  const address = c.req.param('address').toLowerCase() as Address;
+
+  const rawLimit = c.req.query('limit') || '25';
+  const rawOffset = c.req.query('offset') || '0';
+  const limit = Math.min(Math.max(parseInt(rawLimit, 10) || 25, 1), 100);
+  const offset = Math.max(parseInt(rawOffset, 10) || 0, 0);
+
+  const total = getRefereesCount(address);
+  const referees = getRefereesPage(address, limit, offset);
+
+  return c.json({
+    address,
+    total,
+    limit,
+    offset,
+    referees: referees.map(ref => ({
+      address: ref.address,
+      joinedAt: ref.created_at,
+      tasksCompleted: ref.tasks_completed,
+      bountiesPosted: ref.bounties_posted,
+      isActive: ref.tasks_completed > 0 || ref.bounties_posted > 0,
+    })),
   });
 });
 
