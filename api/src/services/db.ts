@@ -10,6 +10,7 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/marketpl
 let db: Database.Database | null = null;
 
 export function getDb(): Database.Database {
+
   if (!db) {
     // Ensure data directory exists
     const dir = path.dirname(DB_PATH);
@@ -22,6 +23,16 @@ export function getDb(): Database.Database {
     initSchema();
   }
   return db;
+}
+
+export function pingDb(): boolean {
+  try {
+    const database = getDb();
+    database.prepare('SELECT 1 as ok').get();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function initSchema() {
