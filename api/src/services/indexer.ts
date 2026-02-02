@@ -10,6 +10,12 @@ import { baseSepolia } from 'viem/chains';
 import {
   upsertTask,
   updateTaskState,
+  getTask,
+  getOrCreateAgent,
+  incrementBountiesPosted,
+  incrementTasksCompleted,
+  getAgent,
+  addReferralEarnings,
   getLastIndexedBlock,
   setLastIndexedBlock,
 } from './db.js';
@@ -55,6 +61,47 @@ const StateMap: Record<number, EscrowState> = {
   3: 'Disputed',
   4: 'Resolved',
 };
+
+const REFERRAL_REVENUE_SHARE_BPS = 500n; // 5%
+const BPS_DENOM = 10_000n;
+
+function safeToWholeTokens18(amountWei: bigint): number {
+  // Convert 18-decimal wei → whole tokens; clamp to MAX_SAFE_INTEGER
+  const whole = amountWei / 10n ** 18n;
+  const max = BigInt(Number.MAX_SAFE_INTEGER);
+  return Number(whole > max ? max : whole);
+}
+
+function applyCompletionSideEffects(opts: {
+  escrowId: string;
+  workerAmountWei?: bigint;
+}) {
+  const task = getTask(opts.escrowId);
+  if (!task) return;
+
+  // Avoid double counting if both EscrowReleased and EscrowResolved exist for same escrow
+  if (task.state === 'Resolved') return;
+
+  // Mark resolved in task table first
+  updateTaskState(opts.escrowId, 'Resolved');
+
+  // Count worker completion
+  if (task.worker) {
+    getOrCreateAgent(task.worker.toLowerCase());
+    incrementTasksCompleted(task.worker.toLowerCase());
+
+    // Revenue share: 5% of worker earnings to referrer (if any)
+    const workerAgent = getAgent(task.worker.toLowerCase());
+    const referrer = workerAgent?.referred_by;
+    if (referrer && opts.workerAmountWei !== undefined) {
+      const shareWei = (opts.workerAmountWei * REFERRAL_REVENUE_SHARE_BPS) / BPS_DENOM;
+      const shareWhole = safeToWholeTokens18(shareWei);
+      if (shareWhole > 0) {
+        addReferralEarnings(referrer.toLowerCase(), shareWhole);
+      }
+    }
+  }
+}
 
 let indexerRunning = false;
 let indexerInterval: NodeJS.Timeout | null = null;
@@ -104,8 +151,9 @@ async function indexBlockRange(fromBlock: bigint, toBlock: bigint): Promise<void
 
   for (const log of releasedLogs) {
     const escrowId = log.args.escrowId as string;
+    const workerAmount = log.args.workerAmount as bigint | undefined;
     console.log(`[Indexer] EscrowReleased event for ${escrowId}`);
-    updateTaskState(escrowId, 'Resolved');
+    applyCompletionSideEffects({ escrowId, workerAmountWei: workerAmount });
   }
 
   const disputedLogs = await publicClient.getLogs({
@@ -141,7 +189,8 @@ async function indexBlockRange(fromBlock: bigint, toBlock: bigint): Promise<void
 
   for (const log of resolvedLogs) {
     const escrowId = log.args.escrowId as string;
-    updateTaskState(escrowId, 'Resolved');
+    const workerAmount = log.args.workerAmount as bigint | undefined;
+    applyCompletionSideEffects({ escrowId, workerAmountWei: workerAmount });
   }
 
   // Update last indexed block
@@ -184,6 +233,10 @@ async function processEscrowCreated(log: Log<bigint, number, false, typeof escro
 
   console.log(`[Indexer] Processing escrow ${escrowId}: deadline=${deadline}, createdAt=${createdAt}`, escrowData);
 
+  // Track agent stats
+  getOrCreateAgent(client.toLowerCase());
+  incrementBountiesPosted(client.toLowerCase());
+
   // Insert into database
   upsertTask({
     escrow_id: escrowId,
@@ -215,6 +268,9 @@ async function processEscrowAccepted(log: Log<bigint, number, false, typeof escr
   if (!escrowId || !worker) {
     return;
   }
+
+  // Ensure worker exists in agents table for later referral calculations
+  getOrCreateAgent(worker.toLowerCase());
 
   updateTaskState(escrowId, 'Active', worker);
   console.log(`[Indexer] Task ${escrowId} accepted by ${worker}`);
