@@ -95,7 +95,7 @@ GET /v2/airdrop/status/:address
 GET /v2/referrals/:address
 
 # Get earnings from referrals
-GET /v2/referrals/:address/earnings
+GET /v2/referrals/:address/earnings?limit=10
 
 # Your referral link: clawgle.xyz/join?ref=YOUR_ADDRESS
 ```
