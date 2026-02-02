@@ -16,6 +16,10 @@ export const marketplaceRoutes = new Hono();
 
 const contractAddress = process.env.ESCROW_CONTRACT_ADDRESS as Address;
 
+const taskCategories: TaskCategory[] = ['creative', 'coding', 'data', 'research', 'other'];
+const escrowStates: EscrowState[] = ['Pending', 'Active', 'Submitted', 'Disputed', 'Resolved'];
+const sortOptions = ['newest', 'amount_desc', 'deadline_asc'] as const;
+
 const escrowAbi = parseAbi([
   'function createEscrow(address token, uint256 amount, uint256 deadline, bytes32 criteriaHash, uint256 reviewPeriod) payable returns (bytes32)',
 ]);
@@ -39,6 +43,18 @@ function rowToListing(row: TaskRow): TaskListing {
     skills: row.skills ? JSON.parse(row.skills) : [],
   };
 }
+
+/**
+ * GET /v2/marketplace/meta
+ * Get marketplace metadata for filters
+ */
+marketplaceRoutes.get('/meta', async (c) => {
+  return c.json({
+    categories: taskCategories,
+    states: escrowStates,
+    sort: sortOptions,
+  });
+});
 
 /**
  * GET /v2/marketplace/tasks
