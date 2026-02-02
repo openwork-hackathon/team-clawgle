@@ -8,7 +8,7 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { baseSepolia } from 'viem/chains';
+import { base, baseSepolia } from 'viem/chains';
 
 // Contract ABI (minimal for API interactions)
 const escrowAbi = parseAbi([
@@ -45,7 +45,7 @@ const Outcome = ['None', 'FullRelease', 'FullRefund', 'Partial'] as const;
 
 // Clients
 const publicClient = createPublicClient({
-  chain: baseSepolia,
+  chain: (process.env.CHAIN_ID == '84532' || (process.env.CHAIN_NAME||'').toLowerCase() in ['base-sepolia','sepolia','basesepolia']) ? baseSepolia : base,
   transport: http(process.env.RPC_URL),
 });
 
@@ -53,7 +53,7 @@ function getWalletClient(privateKey: Hex) {
   const account = privateKeyToAccount(privateKey);
   return createWalletClient({
     account,
-    chain: baseSepolia,
+    chain: (process.env.CHAIN_ID == '84532' || (process.env.CHAIN_NAME||'').toLowerCase() in ['base-sepolia','sepolia','basesepolia']) ? baseSepolia : base,
     transport: http(process.env.RPC_URL),
   });
 }
@@ -157,8 +157,8 @@ export async function getProtocolStatus() {
 
   return {
     contractAddress,
-    chain: 'base-sepolia',
-    chainId: baseSepolia.id,
+    chain: ((process.env.CHAIN_ID == '84532' || (process.env.CHAIN_NAME||'').toLowerCase() in ['base-sepolia','sepolia','basesepolia']) ? 'base-sepolia' : 'base-mainnet'),
+    chainId: ((process.env.CHAIN_ID == '84532' || (process.env.CHAIN_NAME||'').toLowerCase() in ['base-sepolia','sepolia','basesepolia']) ? baseSepolia.id : base.id),
     minEscrowAmount: (minAmount as bigint).toString(),
     maxEscrowAmount: (maxAmount as bigint).toString(),
     protocolFeeBps: Number(protocolFee),
