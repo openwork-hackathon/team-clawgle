@@ -417,6 +417,33 @@ export function getReferees(address: string): AgentRow[] {
 }
 
 // =========================================
+
+// Get referrer leaderboard
+export function getReferralLeaderboard(limit = 25): Array<{ address: string; referralCount: number; activeReferees: number; totalEarnings: number }> {
+  const database = getDb();
+
+  const rows = database.prepare(`
+    SELECT
+      a.address as address,
+      COUNT(r.address) as referralCount,
+      SUM(CASE WHEN (r.tasks_completed > 0 OR r.bounties_posted > 0) THEN 1 ELSE 0 END) as activeReferees,
+      a.referral_earnings as totalEarnings
+    FROM agents a
+    LEFT JOIN agents r ON r.referred_by = a.address
+    WHERE a.airdrop_claimed = 1
+    GROUP BY a.address
+    HAVING referralCount > 0 OR totalEarnings > 0
+    ORDER BY referralCount DESC, totalEarnings DESC
+    LIMIT ?
+  `).all(limit) as any[];
+
+  return rows.map(r => ({
+    address: r.address,
+    referralCount: Number(r.referralCount || 0),
+    activeReferees: Number(r.activeReferees || 0),
+    totalEarnings: Number(r.totalEarnings || 0),
+  }));
+}
 // Social Claims Functions
 // =========================================
 

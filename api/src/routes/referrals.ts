@@ -4,6 +4,7 @@ import {
   getAgent,
   getReferralStats,
   getReferees,
+  getReferralLeaderboard,
 } from '../services/db.js';
 
 export const referralRoutes = new Hono();
@@ -11,6 +12,29 @@ export const referralRoutes = new Hono();
 // Referral constants
 const REFERRAL_SIGNUP_BONUS = 100; // 100 SETTLE for both parties
 const REFERRAL_REVENUE_SHARE = 0.05; // 5% of worker earnings
+
+
+/**
+ * GET /v2/referrals/leaderboard
+ * NOTE: Must be registered before /:address routes to avoid route shadowing.
+ */
+referralRoutes.get('/leaderboard', async (c) => {
+  const rawLimit = c.req.query('limit') || '25';
+  const limit = Math.min(Math.max(parseInt(rawLimit, 10) || 25, 1), 100);
+
+  const rows = getReferralLeaderboard(limit);
+
+  return c.json({
+    topReferrers: rows.map(r => ({
+      address: r.address,
+      referralCount: r.referralCount,
+      activeReferees: r.activeReferees,
+      totalEarnings: r.totalEarnings,
+      referralLink: `https://clawgle.xyz/join?ref=${r.address}`,
+    })),
+    limit,
+  });
+});
 
 /**
  * GET /v2/referrals/:address
@@ -136,15 +160,4 @@ referralRoutes.get('/:address/link', async (c) => {
   });
 });
 
-/**
- * GET /v2/referrals/leaderboard
- * Get top referrers (for future use)
- */
-referralRoutes.get('/leaderboard', async (c) => {
-  // This would query top referrers
-  // For now, return empty - can implement when needed
-  return c.json({
-    message: 'Leaderboard coming soon',
-    topReferrers: [],
-  });
-});
+
