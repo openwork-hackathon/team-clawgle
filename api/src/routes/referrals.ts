@@ -14,6 +14,14 @@ export const referralRoutes = new Hono();
 // Referral constants
 const REFERRAL_SIGNUP_BONUS = 100; // 100 SETTLE for both parties
 const REFERRAL_REVENUE_SHARE = 0.05; // 5% of worker earnings
+const REFERRAL_EARNINGS_CAP = Number(process.env.REFERRAL_EARNINGS_CAP ?? '10000');
+
+function getReferralEarningsCap(): number {
+  if (Number.isFinite(REFERRAL_EARNINGS_CAP) && REFERRAL_EARNINGS_CAP > 0) {
+    return REFERRAL_EARNINGS_CAP;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
 
 
 /**
@@ -77,6 +85,7 @@ referralRoutes.get('/:address', async (c) => {
 
   const agent = getAgent(address);
   if (!agent) {
+    const cap = getReferralEarningsCap();
     return c.json({
       address,
       referralLink: `https://clawgle.xyz/join?ref=${address}`,
@@ -84,6 +93,8 @@ referralRoutes.get('/:address', async (c) => {
       totalEarnings: 0,
       signupBonusPerReferral: REFERRAL_SIGNUP_BONUS,
       revenueSharePercent: REFERRAL_REVENUE_SHARE * 100,
+      earningsCap: cap,
+      earningsRemaining: cap,
       referees: [],
       eligibleForRevenueShare: false,
       message: 'Claim airdrop to start earning referral bonuses',
@@ -94,6 +105,9 @@ referralRoutes.get('/:address', async (c) => {
   const referees = getReferees(address);
   const isActive = agent.tasks_completed > 0 || agent.bounties_posted > 0;
 
+  const cap = getReferralEarningsCap();
+  const remaining = Math.max(cap - stats.totalEarnings, 0);
+
   return c.json({
     address,
     referralLink: `https://clawgle.xyz/join?ref=${address}`,
@@ -101,6 +115,8 @@ referralRoutes.get('/:address', async (c) => {
     totalEarnings: stats.totalEarnings,
     signupBonusPerReferral: REFERRAL_SIGNUP_BONUS,
     revenueSharePercent: REFERRAL_REVENUE_SHARE * 100,
+    earningsCap: cap,
+    earningsRemaining: remaining,
     eligibleForRevenueShare: isActive,
     eligibilityReason: isActive
       ? 'Active agent - earning 5% revenue share on referee earnings'
@@ -131,11 +147,14 @@ referralRoutes.get('/:address/earnings', async (c) => {
 
   const agent = getAgent(address);
   if (!agent) {
+    const cap = getReferralEarningsCap();
     return c.json({
       address,
       totalEarnings: 0,
       signupBonuses: 0,
       revenueShareEarnings: 0,
+      earningsCap: cap,
+      earningsRemaining: cap,
       totalReferees: 0,
       activeReferees: 0,
       topRefereesLimit: limit,
@@ -154,13 +173,19 @@ referralRoutes.get('/:address/earnings', async (c) => {
   // Revenue share is tracked separately in agent.referral_earnings
   const revenueShareEarnings = agent.referral_earnings;
 
+  const cap = getReferralEarningsCap();
+  const totalEarnings = signupBonuses + revenueShareEarnings;
+  const remaining = Math.max(cap - totalEarnings, 0);
+
   return c.json({
     address,
-    totalEarnings: signupBonuses + revenueShareEarnings,
+    totalEarnings,
     signupBonuses,
     signupBonusCount: stats.referralCount,
     revenueShareEarnings,
     revenueSharePercent: REFERRAL_REVENUE_SHARE * 100,
+    earningsCap: cap,
+    earningsRemaining: remaining,
     totalReferees: stats.referralCount,
     activeReferees,
     topRefereesLimit: limit,

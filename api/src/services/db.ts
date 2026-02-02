@@ -6,6 +6,7 @@ import type { TaskRow, TaskSearchParams, EscrowState } from '../types/marketplac
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/marketplace.db');
+const REFERRAL_EARNINGS_CAP = Number(process.env.REFERRAL_EARNINGS_CAP ?? '10000');
 
 let db: Database.Database | null = null;
 
@@ -389,11 +390,23 @@ export function incrementBountiesPosted(address: string): void {
   database.prepare('UPDATE agents SET bounties_posted = bounties_posted + 1 WHERE address = ?').run(address);
 }
 
-// Add referral earnings
+// Add referral earnings (capped)
 export function addReferralEarnings(referrerAddress: string, amount: number): void {
   const database = getDb();
+  const agent = getAgent(referrerAddress);
+  if (!agent) return;
+
+  const cap = Number.isFinite(REFERRAL_EARNINGS_CAP) && REFERRAL_EARNINGS_CAP > 0
+    ? REFERRAL_EARNINGS_CAP
+    : Number.MAX_SAFE_INTEGER;
+  const remaining = cap - (agent.referral_earnings || 0);
+  if (remaining <= 0) return;
+
+  const increment = Math.min(amount, remaining);
+  if (increment <= 0) return;
+
   database.prepare('UPDATE agents SET referral_earnings = referral_earnings + ? WHERE address = ?')
-    .run(amount, referrerAddress);
+    .run(increment, referrerAddress);
 }
 
 // Get referral stats for an agent
