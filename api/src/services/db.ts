@@ -87,15 +87,28 @@ function initSchema() {
     );
 
     -- Triggers to keep FTS in sync
+    -- Note: tasks_fts only contains PUBLIC tasks (is_public = 1)
     CREATE TRIGGER IF NOT EXISTS tasks_ai AFTER INSERT ON tasks WHEN new.is_public = 1 BEGIN
       INSERT INTO tasks_fts(rowid, escrow_id, title, description, skills, category, deliverable_summary)
       VALUES (new.rowid, new.escrow_id, new.title, new.description, new.skills, new.category, new.deliverable_summary);
     END;
 
-    CREATE TRIGGER IF NOT EXISTS tasks_au AFTER UPDATE ON tasks WHEN new.is_public = 1 BEGIN
+    -- When a public task is updated, refresh its FTS row
+    -- When a task becomes public, add it to FTS
+    CREATE TRIGGER IF NOT EXISTS tasks_au_public AFTER UPDATE ON tasks WHEN new.is_public = 1 BEGIN
       DELETE FROM tasks_fts WHERE rowid = old.rowid;
       INSERT INTO tasks_fts(rowid, escrow_id, title, description, skills, category, deliverable_summary)
       VALUES (new.rowid, new.escrow_id, new.title, new.description, new.skills, new.category, new.deliverable_summary);
+    END;
+
+    -- When a task is unpublished, remove it from FTS
+    CREATE TRIGGER IF NOT EXISTS tasks_au_unpublic AFTER UPDATE ON tasks WHEN new.is_public = 0 AND old.is_public = 1 BEGIN
+      DELETE FROM tasks_fts WHERE rowid = old.rowid;
+    END;
+
+    -- When a task is deleted, remove it from FTS
+    CREATE TRIGGER IF NOT EXISTS tasks_ad AFTER DELETE ON tasks BEGIN
+      DELETE FROM tasks_fts WHERE rowid = old.rowid;
     END;
 
     -- =========================================
